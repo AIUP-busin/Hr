@@ -1,2 +1,0 @@
-# Hr
-Ottimo hr bot
