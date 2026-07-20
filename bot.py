@@ -380,6 +380,15 @@ async def safe_delete(bot, chat_id, message_id):
     except Exception:
         pass
 
+async def clear_chat(bot, chat_id, last_message_id, back=100):
+    """Joriy xabardan orqaga qarab hamma chatni o'chiradi (48 soat ichidagilar).
+    Telegram bot faqat 48 soatdan yangi xabarlarni o'chira oladi."""
+    for mid in range(last_message_id, max(0, last_message_id - back), -1):
+        try:
+            await bot.delete_message(chat_id=chat_id, message_id=mid)
+        except Exception:
+            pass
+
 def split_text(text, max_len=4000):
     """Uzun matnni Telegram limitiga (4096) sig'adigan bo'laklarga bo'ladi."""
     parts, chunk = [], ""
@@ -731,8 +740,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if action == "yordam":
         await update.message.reply_text(get_text(user_id, "yordam"), reply_markup=get_menu(user_id)); return
     if action == "tozala":
+        chat_id = update.effective_chat.id
+        # Hamma chatni avtomatik o'chiramiz (joriy xabardan orqaga qarab)
+        await clear_chat(context.bot, chat_id, update.message.message_id, back=200)
+        # Holatni tozalaymiz
         user_sessions[user_id] = []
-        await update.message.reply_text(get_text(user_id, "tozalandi"), reply_markup=get_menu(user_id)); return
+        user_anketa.pop(user_id, None)
+        admin_state.pop(user_id, None)
+        # Boshqattan boshlaymiz — til tanlash menyusi
+        user_name = update.effective_user.first_name or "Foydalanuvchi"
+        lang_menu = ReplyKeyboardMarkup(
+            TEXTS["uz"]["til_tanlash_menu"], resize_keyboard=True, one_time_keyboard=True)
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"🗑️ Suhbat tozalandi!\n\nSalom, {user_name}!\n\nIltimos, tilni tanlang:\nПожалуйста, выберите язык:\nPlease choose language:",
+            reply_markup=lang_menu)
+        return
 
     # Har qanday matn — Gemini ga yuborish (savol mode ham, erkin savol ham)
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
