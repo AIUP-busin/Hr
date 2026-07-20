@@ -627,6 +627,9 @@ def ask_gemini(user_id, user_text):
 # ===================== ASOSIY =====================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
+    # /start har doim toza boshlanadi — yarim qolgan anketa/admin holatini tozalaymiz
+    user_anketa.pop(user_id, None)
+    admin_state.pop(user_id, None)
     user_name = update.effective_user.first_name or "Foydalanuvchi"
     lang_menu = ReplyKeyboardMarkup(
         TEXTS["uz"]["til_tanlash_menu"], resize_keyboard=True, one_time_keyboard=True)
@@ -643,14 +646,28 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Rasm qabul qilindi, lekin hozir anketa to'ldirilmayapti.",
             reply_markup=get_menu(user_id))
 
+# Anketani to'xtatib, menyuga qaytaradigan tugmalar (barcha tillarda)
+MENU_TRIGGERS = set()
+for _lng in ("uz", "ru", "en"):
+    for _row in TEXTS[_lng]["menu"]:
+        MENU_TRIGGERS.update(_row)
+    for _row in TEXTS[_lng]["til_tanlash_menu"]:
+        MENU_TRIGGERS.update(_row)
+MENU_TRIGGERS.update(["🔙 Bosh menyu"])
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user_text = update.message.text
 
-    if user_id in user_anketa:
-        await process_anketa(update, context); return
-    if user_id in admin_state and admin_state[user_id].get("action") == "add_xodim":
-        await process_add_xodim(update, context); return
+    # Anketa/admin jarayonida bo'lsa ham — menyu tugmasi bosilsa, to'xtatib menyuga o'tamiz
+    if user_text in MENU_TRIGGERS:
+        user_anketa.pop(user_id, None)
+        admin_state.pop(user_id, None)
+    else:
+        if user_id in user_anketa:
+            await process_anketa(update, context); return
+        if user_id in admin_state and admin_state[user_id].get("action") == "add_xodim":
+            await process_add_xodim(update, context); return
 
     # Admin tugmalari
     admin_map = {
