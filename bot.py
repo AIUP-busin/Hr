@@ -639,6 +639,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
+    # Faqat shaxsiy chat
+    if update.effective_chat.type != "private":
+        return
+    # Forward qilingan / reklama rasm — e'tiborsiz
+    if is_spam(update, in_anketa=(user_id in user_anketa)):
+        logger.info(f"Spam rasm e'tiborsiz qoldirildi: user {user_id}")
+        return
     if user_id in user_anketa:
         await process_anketa(update, context)
     else:
@@ -655,9 +662,41 @@ for _lng in ("uz", "ru", "en"):
         MENU_TRIGGERS.update(_row)
 MENU_TRIGGERS.update(["🔙 Bosh menyu"])
 
+# ===================== SPAM HIMOYASI =====================
+import re as _re
+_SPAM_RE = _re.compile(r'(https?://|t\.me/|telegram\.me/|@[A-Za-z0-9_]{4,}|\.com|\.ru|\.net|joinchat)', _re.IGNORECASE)
+
+def is_spam(update, in_anketa=False):
+    """Reklama/spam xabarni aniqlaydi: forward, link, kanal reklamasi.
+    Anketa jarayonida (foydalanuvchi javob berayotganda) tekshirmaydi."""
+    msg = update.message
+    if msg is None:
+        return False
+    # Forward qilingan xabar — deyarli har doim spam
+    if getattr(msg, "forward_origin", None) or getattr(msg, "forward_date", None):
+        return True
+    # Inline tugmali reklama (foydalanuvchi bunday yubora olmaydi — kanaldan)
+    if getattr(msg, "via_bot", None):
+        return True
+    if in_anketa:
+        return False  # anketa javobini bloklamaymiz
+    text = msg.text or msg.caption or ""
+    if _SPAM_RE.search(text):
+        return True
+    return False
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user_text = update.message.text
+
+    # Faqat shaxsiy chat — guruh xabarlarini e'tiborsiz qoldiramiz
+    if update.effective_chat.type != "private":
+        return
+
+    # Spam/reklama xabar — jim e'tiborsiz qoldiramiz (javob bermaymiz)
+    if is_spam(update, in_anketa=(user_id in user_anketa)):
+        logger.info(f"Spam e'tiborsiz qoldirildi: user {user_id}")
+        return
 
     # Anketa/admin jarayonida bo'lsa ham — menyu tugmasi bosilsa, to'xtatib menyuga o'tamiz
     if user_text in MENU_TRIGGERS:
