@@ -191,79 +191,82 @@ def db_query(sql, params=(), fetchall=False, fetchone=False):
 # ===================== ANKETA SAVOLLARI =====================
 ANKETA_STEPS = {
     "uz": [
-        ("ism",                "👤 1/23 — Ism, familiya va sharifingizni kiriting:\n(Masalan: Ibrohim Karimov Aliyevich)"),
-        ("yosh",               "🎂 2/23 — Yoshingizni kiriting:\n(Masalan: 25)"),
-        ("millat",             "🌍 3/23 — Millatingizni kiriting:\n(Masalan: O'zbek)"),
-        ("tug_joy",            "🗺 4/23 — Tug'ilgan joyingizni kiriting:\n(Viloyat, tuman)"),
-        ("yashash_joy",        "🏠 5/23 — Hozirgi yashash manzilingizni kiriting:\n(Ko'cha, uy raqami, tuman, shahar)"),
-        ("ish_tajriba",        "💼 6/23 — Ish tajribangiz:\n(Korxona nomi, lavozim, ishlagan yillar.\nYo'q bo'lsa — Yo'q deb yozing)"),
-        ("ish_vazifalari",     "📋 7/23 — Asosiy ish vazifalaringiz nimalardan iborat bo'lgan?"),
-        ("chet_safari",        "✈️ 8/23 — Chet el safariga chiqqanmisiz?\n(Ha — qayerga? / Yo'q)"),
-        ("oilaviy_holat",      "💑 9/23 — Oilaviy holatingizni belgilang:\n\nTurmush qurmagan / Turmush qurgan / Ajrashgan"),
-        ("sudlanganmi",        "⚖️ 10/23 — Sudlanganmisiz?\n(Yo'q / Ha — sababi)"),
-        ("avtomobil",          "🚗 11/23 — Shaxsiy avtomobilingiz bormi?\n(Yo'q / Ha — rusumi)"),
-        ("haydovchilik",       "🪪 12/23 — Haydovchilik guvohnomangiz bormi?\n(Yo'q / Ha — turi: A/B/C/D/E)"),
-        ("uzbek_tili",         "🗣 13/23 — O'zbek tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past)"),
-        ("rus_tili",           "🗣 14/23 — Rus tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past / Bilmayman)"),
-        ("ingliz_tili",        "🗣 15/23 — Ingliz tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past / Bilmayman)"),
-        ("qiziqish",           "⭐ 16/23 — Qiziqishlaringiz:\n(Masalan: sport, musiqa, kitob o'qish...)"),
-        ("kompyuter",          "💻 17/23 — Kompyuterda ishlash darajangiz:\n(Erkin / O'rta / Bilmayman)"),
-        ("tavsiya",            "📄 18/23 — Sizga tavsiya bera oladigan shaxs:\n(Ismi, lavozimi, telefon raqami.\nYo'q bo'lsa — Yo'q deb yozing)"),
-        ("oldingi_maosh",      "💵 19/23 — Oxirgi ish joyingizda qancha maosh olgan edingiz?"),
-        ("kutilayotgan_maosh", "💰 20/23 — Bizdan qancha maosh kutasiz?"),
-        ("muddati",            "📆 21/23 — Bizda qancha muddat ishlashni rejalashtirasiz?"),
-        ("smena",              "⏰ 22/23 — Qaysi vaqtda ishlashni xohlaysiz?\n\n☀️ Kunduzi (07:30-16:30)\n🌙 Kechki payt (16:00-24:00)\n🔄 Ikkalasi ham bo'ladi"),
-        ("telefon",            "📱 23/23 — Telefon raqamingizni kiriting:\n(+998 90 123 45 67)"),
+        ("ism",                "👤 1/24 — Ism, familiya va sharifingizni kiriting:\n(Masalan: Ibrohim Karimov Aliyevich)"),
+        ("yosh",               "🎂 2/24 — Yoshingizni kiriting:\n(Masalan: 25)"),
+        ("millat",             "🌍 3/24 — Millatingizni kiriting:\n(Masalan: O'zbek)"),
+        ("tug_joy",            "🗺 4/24 — Tug'ilgan joyingizni kiriting:\n(Viloyat, tuman)"),
+        ("yashash_joy",        "🏠 5/24 — Hozirgi yashash manzilingizni kiriting:\n(Ko'cha, uy raqami, tuman, shahar)"),
+        ("ish_tajriba",        "💼 6/24 — Ish tajribangiz:\n(Korxona nomi, lavozim, ishlagan yillar.\nYo'q bo'lsa — Yo'q deb yozing)"),
+        ("ish_vazifalari",     "📋 7/24 — Asosiy ish vazifalaringiz nimalardan iborat bo'lgan?"),
+        ("chet_safari",        "✈️ 8/24 — Chet el safariga chiqqanmisiz?\n(Ha — qayerga? / Yo'q)"),
+        ("oilaviy_holat",      "💑 9/24 — Oilaviy holatingizni belgilang:\n\nTurmush qurmagan / Turmush qurgan / Ajrashgan"),
+        ("sudlanganmi",        "⚖️ 10/24 — Sudlanganmisiz?\n(Yo'q / Ha — sababi)"),
+        ("avtomobil",          "🚗 11/24 — Shaxsiy avtomobilingiz bormi?\n(Yo'q / Ha — rusumi)"),
+        ("haydovchilik",       "🪪 12/24 — Haydovchilik guvohnomangiz bormi?\n(Yo'q / Ha — turi: A/B/C/D/E)"),
+        ("uzbek_tili",         "🗣 13/24 — O'zbek tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past)"),
+        ("rus_tili",           "🗣 14/24 — Rus tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past / Bilmayman)"),
+        ("ingliz_tili",        "🗣 15/24 — Ingliz tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past / Bilmayman)"),
+        ("qiziqish",           "⭐ 16/24 — Qiziqishlaringiz:\n(Masalan: sport, musiqa, kitob o'qish...)"),
+        ("kompyuter",          "💻 17/24 — Kompyuterda ishlash darajangiz:\n(Erkin / O'rta / Bilmayman)"),
+        ("tavsiya",            "📄 18/24 — Sizga tavsiya bera oladigan shaxs:\n(Ismi, lavozimi, telefon raqami.\nYo'q bo'lsa — Yo'q deb yozing)"),
+        ("oldingi_maosh",      "💵 19/24 — Oxirgi ish joyingizda qancha maosh olgan edingiz?"),
+        ("kutilayotgan_maosh", "💰 20/24 — Bizdan qancha maosh kutasiz?"),
+        ("muddati",            "📆 21/24 — Bizda qancha muddat ishlashni rejalashtirasiz?"),
+        ("smena",              "⏰ 22/24 — Qaysi vaqtda ishlashni xohlaysiz?\n\n☀️ Kunduzi (07:30-16:30)\n🌙 Kechki payt (16:00-24:00)\n🔄 Ikkalasi ham bo'ladi"),
+        ("telefon",            "📱 23/24 — Telefon raqamingizni kiriting:\n(+998 90 123 45 67)"),
+        ("rasm",               "📸 24/24 — Shaxsiy rasmingizni yuboring:\n(Yuzingiz aniq ko'ringan rasmiy surat)"),
     ],
     "ru": [
-        ("ism",                "👤 1/23 — Введите Имя, Фамилию и Отчество:\n(Например: Ибрагим Каримов Алиевич)"),
-        ("yosh",               "🎂 2/23 — Ваш возраст:\n(Например: 25)"),
-        ("millat",             "🌍 3/23 — Ваша национальность:\n(Например: Узбек)"),
-        ("tug_joy",            "🗺 4/23 — Место рождения:\n(Область, район)"),
-        ("yashash_joy",        "🏠 5/23 — Текущий адрес проживания:\n(Улица, дом, район, город)"),
-        ("ish_tajriba",        "💼 6/23 — Опыт работы:\n(Компания, должность, годы.\nНет — Нет)"),
-        ("ish_vazifalari",     "📋 7/23 — Какие были ваши основные обязанности?"),
-        ("chet_safari",        "✈️ 8/23 — Выезжали ли за рубеж?\n(Да — куда? / Нет)"),
-        ("oilaviy_holat",      "💑 9/23 — Семейное положение:\n\nХолост / Женат / Разведён"),
-        ("sudlanganmi",        "⚖️ 10/23 — Были ли судимы?\n(Нет / Да — причина)"),
-        ("avtomobil",          "🚗 11/23 — Есть ли личный автомобиль?\n(Нет / Да — марка)"),
-        ("haydovchilik",       "🪪 12/23 — Есть ли водительские права?\n(Нет / Да — категория: A/B/C/D/E)"),
-        ("uzbek_tili",         "🗣 13/23 — Уровень узбекского языка?\n(Отлично / Хорошо / Слабо)"),
-        ("rus_tili",           "🗣 14/23 — Уровень русского языка?\n(Отлично / Хорошо / Слабо / Не знаю)"),
-        ("ingliz_tili",        "🗣 15/23 — Уровень английского языка?\n(Отлично / Хорошо / Слабо / Не знаю)"),
-        ("qiziqish",           "⭐ 16/23 — Ваши увлечения:\n(Например: спорт, музыка, чтение...)"),
-        ("kompyuter",          "💻 17/23 — Уровень работы с компьютером:\n(Свободно / Средне / Не умею)"),
-        ("tavsiya",            "📄 18/23 — Кто может дать вам рекомендацию?\n(Имя, должность, телефон.\nНет — Нет)"),
-        ("oldingi_maosh",      "💵 19/23 — Какую зарплату получали на последнем месте работы?"),
-        ("kutilayotgan_maosh", "💰 20/23 — Какую зарплату ожидаете от нас?"),
-        ("muddati",            "📆 21/23 — На какой срок планируете работать у нас?"),
-        ("smena",              "⏰ 22/23 — В какое время хотите работать?\n\n☀️ Дневная (07:30-16:30)\n🌙 Вечерняя (16:00-24:00)\n🔄 Любая смена"),
-        ("telefon",            "📱 23/23 — Введите номер телефона:\n(+998 90 123 45 67)"),
+        ("ism",                "👤 1/24 — Введите Имя, Фамилию и Отчество:\n(Например: Ибрагим Каримов Алиевич)"),
+        ("yosh",               "🎂 2/24 — Ваш возраст:\n(Например: 25)"),
+        ("millat",             "🌍 3/24 — Ваша национальность:\n(Например: Узбек)"),
+        ("tug_joy",            "🗺 4/24 — Место рождения:\n(Область, район)"),
+        ("yashash_joy",        "🏠 5/24 — Текущий адрес проживания:\n(Улица, дом, район, город)"),
+        ("ish_tajriba",        "💼 6/24 — Опыт работы:\n(Компания, должность, годы.\nНет — Нет)"),
+        ("ish_vazifalari",     "📋 7/24 — Какие были ваши основные обязанности?"),
+        ("chet_safari",        "✈️ 8/24 — Выезжали ли за рубеж?\n(Да — куда? / Нет)"),
+        ("oilaviy_holat",      "💑 9/24 — Семейное положение:\n\nХолост / Женат / Разведён"),
+        ("sudlanganmi",        "⚖️ 10/24 — Были ли судимы?\n(Нет / Да — причина)"),
+        ("avtomobil",          "🚗 11/24 — Есть ли личный автомобиль?\n(Нет / Да — марка)"),
+        ("haydovchilik",       "🪪 12/24 — Есть ли водительские права?\n(Нет / Да — категория: A/B/C/D/E)"),
+        ("uzbek_tili",         "🗣 13/24 — Уровень узбекского языка?\n(Отлично / Хорошо / Слабо)"),
+        ("rus_tili",           "🗣 14/24 — Уровень русского языка?\n(Отлично / Хорошо / Слабо / Не знаю)"),
+        ("ingliz_tili",        "🗣 15/24 — Уровень английского языка?\n(Отлично / Хорошо / Слабо / Не знаю)"),
+        ("qiziqish",           "⭐ 16/24 — Ваши увлечения:\n(Например: спорт, музыка, чтение...)"),
+        ("kompyuter",          "💻 17/24 — Уровень работы с компьютером:\n(Свободно / Средне / Не умею)"),
+        ("tavsiya",            "📄 18/24 — Кто может дать вам рекомендацию?\n(Имя, должность, телефон.\nНет — Нет)"),
+        ("oldingi_maosh",      "💵 19/24 — Какую зарплату получали на последнем месте работы?"),
+        ("kutilayotgan_maosh", "💰 20/24 — Какую зарплату ожидаете от нас?"),
+        ("muddati",            "📆 21/24 — На какой срок планируете работать у нас?"),
+        ("smena",              "⏰ 22/24 — В какое время хотите работать?\n\n☀️ Дневная (07:30-16:30)\n🌙 Вечерняя (16:00-24:00)\n🔄 Любая смена"),
+        ("telefon",            "📱 23/24 — Введите номер телефона:\n(+998 90 123 45 67)"),
+        ("rasm",               "📸 24/24 — Отправьте своё личное фото:\n(Официальное фото, где чётко видно лицо)"),
     ],
     "en": [
-        ("ism",                "👤 1/23 — Enter your full name:\n(Example: Ibrahim Karimov Aliyevich)"),
-        ("yosh",               "🎂 2/23 — Enter your age:\n(Example: 25)"),
-        ("millat",             "🌍 3/23 — Enter your nationality:\n(Example: Uzbek)"),
-        ("tug_joy",            "🗺 4/23 — Place of birth:\n(Region, district)"),
-        ("yashash_joy",        "🏠 5/23 — Current address:\n(Street, house, district, city)"),
-        ("ish_tajriba",        "💼 6/23 — Work experience:\n(Company, position, years.\nNone — None)"),
-        ("ish_vazifalari",     "📋 7/23 — What were your main job responsibilities?"),
-        ("chet_safari",        "✈️ 8/23 — Have you traveled abroad?\n(Yes — where? / No)"),
-        ("oilaviy_holat",      "💑 9/23 — Marital status:\n\nSingle / Married / Divorced"),
-        ("sudlanganmi",        "⚖️ 10/23 — Have you ever been convicted?\n(No / Yes — reason)"),
-        ("avtomobil",          "🚗 11/23 — Do you have a personal car?\n(No / Yes — model)"),
-        ("haydovchilik",       "🪪 12/23 — Do you have a driver's license?\n(No / Yes — category: A/B/C/D/E)"),
-        ("uzbek_tili",         "🗣 13/23 — Uzbek language level?\n(Excellent / Good / Poor)"),
-        ("rus_tili",           "🗣 14/23 — Russian language level?\n(Excellent / Good / Poor / None)"),
-        ("ingliz_tili",        "🗣 15/23 — English language level?\n(Excellent / Good / Poor / None)"),
-        ("qiziqish",           "⭐ 16/23 — Your interests:\n(Example: sport, music, reading...)"),
-        ("kompyuter",          "💻 17/23 — Computer skills level:\n(Proficient / Basic / None)"),
-        ("tavsiya",            "📄 18/23 — Who can give you a reference?\n(Name, position, phone.\nNone — None)"),
-        ("oldingi_maosh",      "💵 19/23 — What was your salary at your last job?"),
-        ("kutilayotgan_maosh", "💰 20/23 — What salary do you expect from us?"),
-        ("muddati",            "📆 21/23 — How long are you planning to work with us?"),
-        ("smena",              "⏰ 22/23 — Which shift do you prefer?\n\n☀️ Daytime (07:30-16:30)\n🌙 Evening (16:00-24:00)\n🔄 Either shift"),
-        ("telefon",            "📱 23/23 — Enter your phone number:\n(+998 90 123 45 67)"),
+        ("ism",                "👤 1/24 — Enter your full name:\n(Example: Ibrahim Karimov Aliyevich)"),
+        ("yosh",               "🎂 2/24 — Enter your age:\n(Example: 25)"),
+        ("millat",             "🌍 3/24 — Enter your nationality:\n(Example: Uzbek)"),
+        ("tug_joy",            "🗺 4/24 — Place of birth:\n(Region, district)"),
+        ("yashash_joy",        "🏠 5/24 — Current address:\n(Street, house, district, city)"),
+        ("ish_tajriba",        "💼 6/24 — Work experience:\n(Company, position, years.\nNone — None)"),
+        ("ish_vazifalari",     "📋 7/24 — What were your main job responsibilities?"),
+        ("chet_safari",        "✈️ 8/24 — Have you traveled abroad?\n(Yes — where? / No)"),
+        ("oilaviy_holat",      "💑 9/24 — Marital status:\n\nSingle / Married / Divorced"),
+        ("sudlanganmi",        "⚖️ 10/24 — Have you ever been convicted?\n(No / Yes — reason)"),
+        ("avtomobil",          "🚗 11/24 — Do you have a personal car?\n(No / Yes — model)"),
+        ("haydovchilik",       "🪪 12/24 — Do you have a driver's license?\n(No / Yes — category: A/B/C/D/E)"),
+        ("uzbek_tili",         "🗣 13/24 — Uzbek language level?\n(Excellent / Good / Poor)"),
+        ("rus_tili",           "🗣 14/24 — Russian language level?\n(Excellent / Good / Poor / None)"),
+        ("ingliz_tili",        "🗣 15/24 — English language level?\n(Excellent / Good / Poor / None)"),
+        ("qiziqish",           "⭐ 16/24 — Your interests:\n(Example: sport, music, reading...)"),
+        ("kompyuter",          "💻 17/24 — Computer skills level:\n(Proficient / Basic / None)"),
+        ("tavsiya",            "📄 18/24 — Who can give you a reference?\n(Name, position, phone.\nNone — None)"),
+        ("oldingi_maosh",      "💵 19/24 — What was your salary at your last job?"),
+        ("kutilayotgan_maosh", "💰 20/24 — What salary do you expect from us?"),
+        ("muddati",            "📆 21/24 — How long are you planning to work with us?"),
+        ("smena",              "⏰ 22/24 — Which shift do you prefer?\n\n☀️ Daytime (07:30-16:30)\n🌙 Evening (16:00-24:00)\n🔄 Either shift"),
+        ("telefon",            "📱 23/24 — Enter your phone number:\n(+998 90 123 45 67)"),
+        ("rasm",               "📸 24/24 — Upload your personal photo:\n(Official photo with a clear view of your face)"),
     ]
 }
 
@@ -426,11 +429,16 @@ def build_full_qa(user_id, data, username):
     return text
 
 async def send_to_rahbar_hr(context, user_id, data, username):
-    """To'liq savol-javobni Rahbar va HR ga yuboradi."""
+    """To'liq savol-javobni (va rasmni) Rahbar va HR ga yuboradi."""
     full_text = build_full_qa(user_id, data, username)
+    rasm_id = data.get("rasm_file_id")
     for chat_id, kim in REPORT_RECIPIENTS:
         try:
             await send_long(context.bot, chat_id, full_text)
+            if rasm_id:
+                await context.bot.send_photo(
+                    chat_id=chat_id, photo=rasm_id,
+                    caption=f"📸 Ariza beruvchi rasmi: {data.get('ism', '')}")
             logger.info(f"{kim} ({chat_id}) ga ariza yuborildi")
         except Exception as e:
             logger.error(f"{kim} ({chat_id}) ga yuborishda xato: {e}")
@@ -471,7 +479,20 @@ async def process_anketa(update, context):
         return
 
     # Javobni olish
-    step_data["data"][key] = update.message.text
+    if key == "rasm":
+        # Rasm (surat) kutilyapti
+        if not update.message.photo:
+            # Rasm kelmadi — foydalanuvchi xabarini o'chirib, savolni qoldiramiz
+            await safe_delete(context.bot, chat_id, update.message.message_id)
+            return
+        step_data["data"]["rasm_file_id"] = update.message.photo[-1].file_id
+        step_data["data"]["rasm"] = "📸 Rasm yuborilgan"
+    else:
+        # Matnli javob kutilyapti
+        if not update.message.text:
+            await safe_delete(context.bot, chat_id, update.message.message_id)
+            return
+        step_data["data"][key] = update.message.text
 
     # CHAT TOZALANADI: berilgan javob va oldingi savol o'chadi
     await safe_delete(context.bot, chat_id, update.message.message_id)
