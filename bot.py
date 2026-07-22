@@ -661,17 +661,68 @@ def ask_gemini(user_id, user_text):
     raise Exception("Gemini 3 marta ham javob bermadi")
 
 # ===================== ASOSIY =====================
+# ===================== MAJBURIY OBUNA =====================
+REQUIRED_CHANNEL = "@ottimo_uz"
+CHANNEL_URL = "https://t.me/ottimo_uz"
+
+GATE_TEXT = (
+    "🔒 Botdan foydalanish uchun rasmiy kanalimizga obuna bo'ling 👇\n"
+    "🔒 Для использования бота подпишитесь на наш канал 👇\n"
+    "🔒 To use the bot, please subscribe to our channel 👇\n\n"
+    "📢 @ottimo_uz\n\n"
+    "Obuna bo'lgach «✅ Tekshirish» tugmasini bosing."
+)
+
+def gate_markup():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📢 Kanalga obuna bo'lish", url=CHANNEL_URL)],
+        [InlineKeyboardButton("✅ Tekshirish / Проверить / Check", callback_data="check_sub")],
+    ])
+
+async def is_subscribed(bot, user_id):
+    """Foydalanuvchi @ottimo_uz kanaliga obunami? (Bot kanalda ADMIN bo'lishi shart!)"""
+    try:
+        m = await bot.get_chat_member(REQUIRED_CHANNEL, user_id)
+        return m.status in ("member", "administrator", "creator")
+    except Exception as e:
+        logger.error(f"Obuna tekshirishda xato (bot kanalda admin?): {e}")
+        return False
+
+async def send_language_menu(context, chat_id, user_name):
+    lang_menu = ReplyKeyboardMarkup(
+        TEXTS["uz"]["til_tanlash_menu"], resize_keyboard=True, one_time_keyboard=True)
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=f"Salom, {user_name}!\n\nIltimos, tilni tanlang:\nПожалуйста, выберите язык:\nPlease choose language:",
+        reply_markup=lang_menu)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
+    chat_id = update.effective_chat.id
     # /start har doim toza boshlanadi — yarim qolgan anketa/admin holatini tozalaymiz
     user_anketa.pop(user_id, None)
     admin_state.pop(user_id, None)
-    user_name = update.effective_user.first_name or "Foydalanuvchi"
-    lang_menu = ReplyKeyboardMarkup(
-        TEXTS["uz"]["til_tanlash_menu"], resize_keyboard=True, one_time_keyboard=True)
-    await update.message.reply_text(
-        f"Salom, {user_name}!\n\nIltimos, tilni tanlang:\nПожалуйста, выберите язык:\nPlease choose language:",
-        reply_markup=lang_menu)
+    # Majburiy obuna — obuna bo'lmasa til tanlash chiqmaydi
+    if not await is_subscribed(context.bot, user_id):
+        await context.bot.send_message(chat_id, GATE_TEXT, reply_markup=gate_markup())
+        return
+    await send_language_menu(context, chat_id, update.effective_user.first_name or "Foydalanuvchi")
+
+async def check_sub_callback(update, context):
+    query = update.callback_query
+    user_id = query.from_user.id
+    if await is_subscribed(context.bot, user_id):
+        await query.answer("✅ Rahmat! / Спасибо! / Thank you!")
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+        await send_language_menu(context, query.message.chat.id,
+                                 query.from_user.first_name or "Foydalanuvchi")
+    else:
+        await query.answer(
+            "❌ Siz hali obuna bo'lmagansiz!\n❌ Вы ещё не подписаны!\n❌ You are not subscribed yet!",
+            show_alert=True)
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -864,6 +915,7 @@ def main():
     init_db()
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(check_sub_callback, pattern="^check_sub$"))
     app.add_handler(CallbackQueryHandler(anketa_callback, pattern="^anketa_"))
     app.add_handler(CallbackQueryHandler(kechikish_callback, pattern="^kechik_"))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
