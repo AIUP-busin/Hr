@@ -155,6 +155,21 @@ def get_smena_menu(user_id):
     lang = get_lang(user_id)
     return ReplyKeyboardMarkup(TEXTS[lang]["smena_menu"], resize_keyboard=True, one_time_keyboard=True)
 
+def trash_button(user_id):
+    # Menyudagi oxirgi tugma — "🗑️ Suhbatni tozalash" (til bo'yicha)
+    lang = get_lang(user_id)
+    return TEXTS[lang]["menu"][-1][-1]
+
+def get_anketa_keyboard(user_id):
+    # Anketa davomida pastda doim turadigan "chatni tozalash" tugmasi
+    return ReplyKeyboardMarkup([[trash_button(user_id)]], resize_keyboard=True)
+
+def get_smena_keyboard(user_id):
+    # Smena tanlash tugmalari + pastda "chatni tozalash"
+    lang = get_lang(user_id)
+    rows = [list(r) for r in TEXTS[lang]["smena_menu"]] + [[trash_button(user_id)]]
+    return ReplyKeyboardMarkup(rows, resize_keyboard=True)
+
 # ===================== DATABASE =====================
 def init_db():
     conn = sqlite3.connect("ottimo.db")
@@ -457,7 +472,7 @@ async def start_anketa(update, context):
     sent = await context.bot.send_message(
         chat_id=chat_id,
         text=get_text(user_id, "anketa_boshlash").format(len(steps)) + steps[0][1],
-        reply_markup=ReplyKeyboardRemove())
+        reply_markup=get_anketa_keyboard(user_id))
     user_anketa[user_id]["last_msg_id"] = sent.message_id
 
 async def process_anketa(update, context):
@@ -504,7 +519,7 @@ async def process_anketa(update, context):
     if next_step < len(steps):
         step_data["step"] = next_step
         next_key, next_question = steps[next_step]
-        markup = get_smena_menu(user_id) if next_key == "smena" else ReplyKeyboardRemove()
+        markup = get_smena_keyboard(user_id) if next_key == "smena" else get_anketa_keyboard(user_id)
         sent = await context.bot.send_message(
             chat_id=chat_id, text=next_question, reply_markup=markup)
         step_data["last_msg_id"] = sent.message_id
@@ -820,18 +835,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id = update.effective_chat.id
         # Hamma chatni avtomatik o'chiramiz (joriy xabardan orqaga qarab)
         await clear_chat(context.bot, chat_id, update.message.message_id, back=200)
-        # Holatni tozalaymiz
+        # Holatni tozalaymiz (yarim qolgan anketa ham)
         user_sessions[user_id] = []
         user_anketa.pop(user_id, None)
         admin_state.pop(user_id, None)
-        # Boshqattan boshlaymiz — til tanlash menyusi
-        user_name = update.effective_user.first_name or "Foydalanuvchi"
-        lang_menu = ReplyKeyboardMarkup(
-            TEXTS["uz"]["til_tanlash_menu"], resize_keyboard=True, one_time_keyboard=True)
+        # Chat tozalandi — hamma commandlar (bosh menyu) qayta ko'rinadi
         await context.bot.send_message(
             chat_id=chat_id,
-            text=f"🗑️ Suhbat tozalandi!\n\nSalom, {user_name}!\n\nIltimos, tilni tanlang:\nПожалуйста, выберите язык:\nPlease choose language:",
-            reply_markup=lang_menu)
+            text="🗑️ " + get_text(user_id, "tozalandi") + "\n\n" + get_text(user_id, "bosh_menyu"),
+            reply_markup=get_menu(user_id))
         return
 
     # Har qanday matn — Gemini ga yuborish (savol mode ham, erkin savol ham)
