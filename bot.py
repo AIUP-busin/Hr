@@ -12,11 +12,7 @@ logger = logging.getLogger(__name__)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 ADMIN_USERNAME = "mr_jalilov7"
-ADMIN_CHAT_ID = 206004279          # Rahbar
-HR_CHAT_ID = 731698729             # HR
-
-# Anketa tugagach to'liq savol-javob shu ID larga yuboriladi
-REPORT_RECIPIENTS = ((ADMIN_CHAT_ID, "Rahbar"), (HR_CHAT_ID, "HR"))
+ADMIN_CHAT_ID = 206004279
 
 # ===================== TIL SOZLAMALARI =====================
 TEXTS = {
@@ -155,21 +151,6 @@ def get_smena_menu(user_id):
     lang = get_lang(user_id)
     return ReplyKeyboardMarkup(TEXTS[lang]["smena_menu"], resize_keyboard=True, one_time_keyboard=True)
 
-def trash_button(user_id):
-    # Menyudagi oxirgi tugma — "🗑️ Suhbatni tozalash" (til bo'yicha)
-    lang = get_lang(user_id)
-    return TEXTS[lang]["menu"][-1][-1]
-
-def get_anketa_keyboard(user_id):
-    # Anketa davomida pastda doim turadigan "chatni tozalash" tugmasi
-    return ReplyKeyboardMarkup([[trash_button(user_id)]], resize_keyboard=True)
-
-def get_smena_keyboard(user_id):
-    # Smena tanlash tugmalari + pastda "chatni tozalash"
-    lang = get_lang(user_id)
-    rows = [list(r) for r in TEXTS[lang]["smena_menu"]] + [[trash_button(user_id)]]
-    return ReplyKeyboardMarkup(rows, resize_keyboard=True)
-
 # ===================== DATABASE =====================
 def init_db():
     conn = sqlite3.connect("ottimo.db")
@@ -206,110 +187,106 @@ def db_query(sql, params=(), fetchall=False, fetchone=False):
 # ===================== ANKETA SAVOLLARI =====================
 ANKETA_STEPS = {
     "uz": [
-        ("ism",                "👤 1/24 — Ism, familiya va sharifingizni kiriting:\n(Masalan: Ibrohim Karimov Aliyevich)"),
-        ("yosh",               "🎂 2/24 — Yoshingizni kiriting:\n(Masalan: 25)"),
-        ("millat",             "🌍 3/24 — Millatingizni kiriting:\n(Masalan: O'zbek)"),
-        ("tug_joy",            "🗺 4/24 — Tug'ilgan joyingizni kiriting:\n(Viloyat, tuman)"),
-        ("yashash_joy",        "🏠 5/24 — Hozirgi yashash manzilingizni kiriting:\n(Ko'cha, uy raqami, tuman, shahar)"),
-        ("ish_tajriba",        "💼 6/24 — Ish tajribangiz:\n(Korxona nomi, lavozim, ishlagan yillar.\nYo'q bo'lsa — Yo'q deb yozing)"),
-        ("ish_vazifalari",     "📋 7/24 — Asosiy ish vazifalaringiz nimalardan iborat bo'lgan?"),
-        ("chet_safari",        "✈️ 8/24 — Chet el safariga chiqqanmisiz?\n(Ha — qayerga? / Yo'q)"),
-        ("oilaviy_holat",      "💑 9/24 — Oilaviy holatingizni belgilang:\n\nTurmush qurmagan / Turmush qurgan / Ajrashgan"),
-        ("sudlanganmi",        "⚖️ 10/24 — Sudlanganmisiz?\n(Yo'q / Ha — sababi)"),
-        ("avtomobil",          "🚗 11/24 — Shaxsiy avtomobilingiz bormi?\n(Yo'q / Ha — rusumi)"),
-        ("haydovchilik",       "🪪 12/24 — Haydovchilik guvohnomangiz bormi?\n(Yo'q / Ha — turi: A/B/C/D/E)"),
-        ("uzbek_tili",         "🗣 13/24 — O'zbek tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past)"),
-        ("rus_tili",           "🗣 14/24 — Rus tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past / Bilmayman)"),
-        ("ingliz_tili",        "🗣 15/24 — Ingliz tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past / Bilmayman)"),
-        ("qiziqish",           "⭐ 16/24 — Qiziqishlaringiz:\n(Masalan: sport, musiqa, kitob o'qish...)"),
-        ("kompyuter",          "💻 17/24 — Kompyuterda ishlash darajangiz:\n(Erkin / O'rta / Bilmayman)"),
-        ("tavsiya",            "📄 18/24 — Sizga tavsiya bera oladigan shaxs:\n(Ismi, lavozimi, telefon raqami.\nYo'q bo'lsa — Yo'q deb yozing)"),
-        ("oldingi_maosh",      "💵 19/24 — Oxirgi ish joyingizda qancha maosh olgan edingiz?"),
-        ("kutilayotgan_maosh", "💰 20/24 — Bizdan qancha maosh kutasiz?"),
-        ("muddati",            "📆 21/24 — Bizda qancha muddat ishlashni rejalashtirasiz?"),
-        ("smena",              "⏰ 22/24 — Qaysi vaqtda ishlashni xohlaysiz?\n\n☀️ Kunduzi (07:30-16:30)\n🌙 Kechki payt (16:00-24:00)\n🔄 Ikkalasi ham bo'ladi"),
-        ("telefon",            "📱 23/24 — Telefon raqamingizni kiriting:\n(+998 90 123 45 67)"),
-        ("rasm",               "📸 24/24 — Shaxsiy rasmingizni yuboring:\n(Yuzingiz aniq ko'ringan rasmiy surat)"),
+        ("ism_familiya_sharif", "👤 1/31 — Ism, Familiya va Sharifingizni kiriting:\n(Masalan: Ibrohim Karimov Aliyevich)"),
+        ("tug_sana",            "📅 2/31 — Tug'ilgan sanangizni kiriting:\n(Masalan: 15.03.2000)"),
+        ("millat",              "🌍 3/31 — Millatingizni kiriting:\n(Masalan: O'zbek)"),
+        ("tug_joy",             "🗺 4/31 — Tug'ilgan joyingizni kiriting (viloyat, tuman):"),
+        ("yashash_joy",         "🏠 5/32 — Doimiy yashash manzilingizni kiriting:\n(Ko'cha, uy raqami, tuman, shahar)"),
+        ("turar_joy",           "🏘 6/32 — Turar joy turingizni belgilang:\n(Dom / Hovli)"),
+        ("telefon",             "📱 7/32 — Telefon raqamingizni kiriting:\n(+998 90 123 45 67)"),
+        ("talim",               "🎓 8/32 — Ta'lim darajangizni belgilang:\n(Maktab / Kollej / Universitet)"),
+        ("oquv_yurti",          "🏫 9/32 — Qaysi o'quv yurtini qachon tamomlagansiz?\n(Nomi, fakultet, yillar. Yo'q — Yo'q)"),
+        ("oldingi_ish",         "💼 10/32 — Oldingi ishlagan joylaringiz:\n(Korxona nomi, lavozim, ishlagan yillar, bo'shash sababi.\nYo'q bo'lsa — Yo'q deb yozing)"),
+        ("chet_safari",         "✈️ 11/32 — Chet el safariga chiqqanmisiz?\n(Ha — qayerga? / Yo'q)"),
+        ("oilaviy_holat",       "💑 12/32 — Oilaviy holatingizni belgilang:\n\nTurmush qurmagan\nTurmush qurgan\nAjrashgan"),
+        ("oila_azosi",          "👨‍👩‍👧 13/32 — Oila a'zolaringiz:\n(Ism, tug'ilgan sana, ish joyi, telefon.\nYo'q bo'lsa — Yo'q deb yozing)"),
+        ("sudlanganmi",         "⚖️ 14/31 — Sudlanganmisiz?\n(Yo'q / Ha — sababi)"),
+        ("avtomobil",           "🚗 15/31 — Shaxsiy avtomobilingiz bormi?\n(Yo'q / Ha — rusumi)"),
+        ("haydovchilik",        "🪪 16/31 — Haydovchilik guvohnomangiz bormi?\n(Yo'q / Ha — turi: A/B/C/D/E)"),
+        ("uzbek_tili",          "🗣 17/31 — O'zbek tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past)"),
+        ("rus_tili",            "🗣 18/31 — Rus tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past / Bilmayman)"),
+        ("ingliz_tili",         "🗣 19/31 — Ingliz tilini qay darajada bilasiz?\n(A'lo / Yaxshi / Past / Bilmayman)"),
+        ("boshqa_til",          "🗣 20/31 — Boshqa tillarni bilasizmi?\n(Yo'q / Ha — qaysi va darajasi)"),
+        ("qobiliyat",           "⭐ 21/32 — Alohida qobiliyatlaringiz:\n(Masalan: oshpazlik, musiqa, sport...\nYo'q bo'lsa — Yo'q deb yozing)"),
+        ("bosh_vaqt",           "🎯 22/32 — Bo'sh vaqtingizni qanday o'tkazasiz?"),
+        ("kompyuter",           "💻 23/32 — Kompyuterda ishlash darajangiz:\n(Erkin / O'rta / Bilmayman)"),
+        ("qayerdan_bildingiz",  "📢 24/32 — Kompaniyamiz haqida qayerdan bildingiz?"),
+        ("kafil",               "🤝 25/32 — Ishlashingizga kafolat bera oladigan shaxs:\n(Ismi, siz bilan aloqasi, ish joyi, telefon raqami.\nYo'q bo'lsa — Yo'q deb yozing)"),
+        ("tavsiya",             "📄 26/32 — Oxirgi ish joyingizdan tavsiya xati bera oladimi?\n(Ha bo'lsa — ismi, lavozimi, telefon raqami.\nYo'q bo'lsa — Yo'q deb yozing)"),
+        ("surushtirishga_rozi", "🔍 27/32 — Oxirgi ish joyingizdan surishtirishimizga rozimisiz?\n(Ha / Yo'q)"),
+        ("oldingi_maosh",       "💵 28/32 — Oxirgi ish joyingizda qancha maosh olgan edingiz?"),
+        ("kutilayotgan_maosh",  "💰 29/32 — Bizdan qancha maosh kutasiz?"),
+        ("ishlash_muddati",     "📆 30/32 — Bizda qancha muddat ishlashni rejalashtirasiz?"),
+        ("smena",               "⏰ 31/32 — Qaysi vaqtda ishlashni xohlaysiz?\n\n☀️ Kunduzi (07:30-16:30)\n🌙 Kechki payt (16:00-24:00)\n🔄 Ikkalasi ham bo'ladi"),
+        ("rasm",                "📸 32/32 — Shaxsiy rasmingizni yuboring:\n\nIltimos, yuz aniq ko'rinadigan rasmiy surat yuboring."),
     ],
     "ru": [
-        ("ism",                "👤 1/24 — Введите Имя, Фамилию и Отчество:\n(Например: Ибрагим Каримов Алиевич)"),
-        ("yosh",               "🎂 2/24 — Ваш возраст:\n(Например: 25)"),
-        ("millat",             "🌍 3/24 — Ваша национальность:\n(Например: Узбек)"),
-        ("tug_joy",            "🗺 4/24 — Место рождения:\n(Область, район)"),
-        ("yashash_joy",        "🏠 5/24 — Текущий адрес проживания:\n(Улица, дом, район, город)"),
-        ("ish_tajriba",        "💼 6/24 — Опыт работы:\n(Компания, должность, годы.\nНет — Нет)"),
-        ("ish_vazifalari",     "📋 7/24 — Какие были ваши основные обязанности?"),
-        ("chet_safari",        "✈️ 8/24 — Выезжали ли за рубеж?\n(Да — куда? / Нет)"),
-        ("oilaviy_holat",      "💑 9/24 — Семейное положение:\n\nХолост / Женат / Разведён"),
-        ("sudlanganmi",        "⚖️ 10/24 — Были ли судимы?\n(Нет / Да — причина)"),
-        ("avtomobil",          "🚗 11/24 — Есть ли личный автомобиль?\n(Нет / Да — марка)"),
-        ("haydovchilik",       "🪪 12/24 — Есть ли водительские права?\n(Нет / Да — категория: A/B/C/D/E)"),
-        ("uzbek_tili",         "🗣 13/24 — Уровень узбекского языка?\n(Отлично / Хорошо / Слабо)"),
-        ("rus_tili",           "🗣 14/24 — Уровень русского языка?\n(Отлично / Хорошо / Слабо / Не знаю)"),
-        ("ingliz_tili",        "🗣 15/24 — Уровень английского языка?\n(Отлично / Хорошо / Слабо / Не знаю)"),
-        ("qiziqish",           "⭐ 16/24 — Ваши увлечения:\n(Например: спорт, музыка, чтение...)"),
-        ("kompyuter",          "💻 17/24 — Уровень работы с компьютером:\n(Свободно / Средне / Не умею)"),
-        ("tavsiya",            "📄 18/24 — Кто может дать вам рекомендацию?\n(Имя, должность, телефон.\nНет — Нет)"),
-        ("oldingi_maosh",      "💵 19/24 — Какую зарплату получали на последнем месте работы?"),
-        ("kutilayotgan_maosh", "💰 20/24 — Какую зарплату ожидаете от нас?"),
-        ("muddati",            "📆 21/24 — На какой срок планируете работать у нас?"),
-        ("smena",              "⏰ 22/24 — В какое время хотите работать?\n\n☀️ Дневная (07:30-16:30)\n🌙 Вечерняя (16:00-24:00)\n🔄 Любая смена"),
-        ("telefon",            "📱 23/24 — Введите номер телефона:\n(+998 90 123 45 67)"),
-        ("rasm",               "📸 24/24 — Отправьте своё личное фото:\n(Официальное фото, где чётко видно лицо)"),
+        ("ism_familiya_sharif", "👤 1/31 — Введите Имя, Фамилию и Отчество:\n(Например: Ибрагим Каримов Алиевич)"),
+        ("tug_sana",            "📅 2/31 — Введите дату рождения:\n(Например: 15.03.2000)"),
+        ("millat",              "🌍 3/31 — Введите национальность:\n(Например: Узбек)"),
+        ("tug_joy",             "🗺 4/31 — Место рождения (область, район):"),
+        ("yashash_joy",         "🏠 5/31 — Постоянное место проживания:"),
+        ("turar_joy",           "🏘 6/31 — Тип жилья:\n(Квартира / Дом)"),
+        ("telefon",             "📱 7/31 — Введите номер телефона:\n(+998 90 123 45 67)"),
+        ("talim",               "🎓 8/31 — Уровень образования:\n(Школа / Колледж / Университет)"),
+        ("oquv_yurti",          "🏫 9/31 — Какое учебное заведение и когда закончили?\n(Название, факультет, годы. Нет — Нет)"),
+        ("oldingi_ish",         "💼 10/31 — Предыдущие места работы:\n(Компания, должность, годы, причина ухода. Нет — Нет)"),
+        ("chet_safari",         "✈️ 11/31 — Выезжали ли за рубеж?\n(Да — куда? / Нет)"),
+        ("oilaviy_holat",       "💑 12/31 — Семейное положение:\n(Холост/Не замужем / Женат/Замужем / Разведён/а)"),
+        ("oila_azosi",          "👨‍👩‍👧 13/31 — Члены семьи:\n(Имя, дата рождения, место работы, телефон. Нет — Нет)"),
+        ("sudlanganmi",         "⚖️ 14/31 — Были ли судимы?\n(Нет / Да — причина)"),
+        ("avtomobil",           "🚗 15/31 — Есть ли личный автомобиль?\n(Нет / Да — марка)"),
+        ("haydovchilik",        "🪪 16/31 — Есть ли водительские права?\n(Нет / Да — категория: A/B/C/D/E)"),
+        ("uzbek_tili",          "🗣 17/31 — Уровень узбекского языка?\n(Отлично / Хорошо / Слабо)"),
+        ("rus_tili",            "🗣 18/31 — Уровень русского языка?\n(Отлично / Хорошо / Слабо / Не знаю)"),
+        ("ingliz_tili",         "🗣 19/31 — Уровень английского языка?\n(Отлично / Хорошо / Слабо / Не знаю)"),
+        ("boshqa_til",          "🗣 20/31 — Знаете ли другие языки?\n(Нет / Да — какой и уровень)"),
+        ("qobiliyat",           "⭐ 21/31 — Особые навыки и умения:\n(Нет — Нет)"),
+        ("bosh_vaqt",           "🎯 22/31 — Как проводите свободное время?"),
+        ("kompyuter",           "💻 23/31 — Уровень работы с компьютером:\n(Свободно / Средне / Не умею)"),
+        ("qayerdan_bildingiz",  "📢 24/31 — Откуда узнали о нашей компании?"),
+        ("kafil",               "🤝 25/31 — Есть ли поручитель?\n(Имя, связь, место работы, телефон. Нет — Нет)"),
+        ("tavsiya",             "📄 26/31 — Может ли кто-то дать рекомендательное письмо?\n(Да — имя, должность, телефон. Нет — Нет)"),
+        ("surushtirishga_rozi", "🔍 27/31 — Согласны ли на проверку последнего места работы?\n(Да / Нет)"),
+        ("oldingi_maosh",       "💵 28/31 — Какую зарплату получали на последнем месте работы?"),
+        ("kutilayotgan_maosh",  "💰 29/31 — Какую зарплату ожидаете от нас?"),
+        ("ishlash_muddati",     "📆 30/31 — На какой срок планируете работать у нас?"),
+        ("smena",               "⏰ 31/31 — В какое время хотите работать?\n\n☀️ Дневная (07:30-16:30)\n🌙 Вечерняя (16:00-24:00)\n🔄 Любая смена"),
     ],
     "en": [
-        ("ism",                "👤 1/24 — Enter your full name:\n(Example: Ibrahim Karimov Aliyevich)"),
-        ("yosh",               "🎂 2/24 — Enter your age:\n(Example: 25)"),
-        ("millat",             "🌍 3/24 — Enter your nationality:\n(Example: Uzbek)"),
-        ("tug_joy",            "🗺 4/24 — Place of birth:\n(Region, district)"),
-        ("yashash_joy",        "🏠 5/24 — Current address:\n(Street, house, district, city)"),
-        ("ish_tajriba",        "💼 6/24 — Work experience:\n(Company, position, years.\nNone — None)"),
-        ("ish_vazifalari",     "📋 7/24 — What were your main job responsibilities?"),
-        ("chet_safari",        "✈️ 8/24 — Have you traveled abroad?\n(Yes — where? / No)"),
-        ("oilaviy_holat",      "💑 9/24 — Marital status:\n\nSingle / Married / Divorced"),
-        ("sudlanganmi",        "⚖️ 10/24 — Have you ever been convicted?\n(No / Yes — reason)"),
-        ("avtomobil",          "🚗 11/24 — Do you have a personal car?\n(No / Yes — model)"),
-        ("haydovchilik",       "🪪 12/24 — Do you have a driver's license?\n(No / Yes — category: A/B/C/D/E)"),
-        ("uzbek_tili",         "🗣 13/24 — Uzbek language level?\n(Excellent / Good / Poor)"),
-        ("rus_tili",           "🗣 14/24 — Russian language level?\n(Excellent / Good / Poor / None)"),
-        ("ingliz_tili",        "🗣 15/24 — English language level?\n(Excellent / Good / Poor / None)"),
-        ("qiziqish",           "⭐ 16/24 — Your interests:\n(Example: sport, music, reading...)"),
-        ("kompyuter",          "💻 17/24 — Computer skills level:\n(Proficient / Basic / None)"),
-        ("tavsiya",            "📄 18/24 — Who can give you a reference?\n(Name, position, phone.\nNone — None)"),
-        ("oldingi_maosh",      "💵 19/24 — What was your salary at your last job?"),
-        ("kutilayotgan_maosh", "💰 20/24 — What salary do you expect from us?"),
-        ("muddati",            "📆 21/24 — How long are you planning to work with us?"),
-        ("smena",              "⏰ 22/24 — Which shift do you prefer?\n\n☀️ Daytime (07:30-16:30)\n🌙 Evening (16:00-24:00)\n🔄 Either shift"),
-        ("telefon",            "📱 23/24 — Enter your phone number:\n(+998 90 123 45 67)"),
-        ("rasm",               "📸 24/24 — Upload your personal photo:\n(Official photo with a clear view of your face)"),
+        ("ism_familiya_sharif", "👤 1/31 — Enter your Full Name:\n(Example: Ibrahim Karimov Aliyevich)"),
+        ("tug_sana",            "📅 2/31 — Enter your date of birth:\n(Example: 15.03.2000)"),
+        ("millat",              "🌍 3/31 — Enter your nationality:\n(Example: Uzbek)"),
+        ("tug_joy",             "🗺 4/31 — Place of birth (region, district):"),
+        ("yashash_joy",         "🏠 5/31 — Permanent address:"),
+        ("turar_joy",           "🏘 6/31 — Type of residence:\n(Apartment / House)"),
+        ("telefon",             "📱 7/31 — Enter your phone number:\n(+998 90 123 45 67)"),
+        ("talim",               "🎓 8/31 — Education level:\n(School / College / University)"),
+        ("oquv_yurti",          "🏫 9/31 — Which institution and when did you graduate?\n(Name, faculty, years. None — None)"),
+        ("oldingi_ish",         "💼 10/31 — Previous work experience:\n(Company, position, years, reason for leaving. None — None)"),
+        ("chet_safari",         "✈️ 11/31 — Have you traveled abroad?\n(Yes — where? / No)"),
+        ("oilaviy_holat",       "💑 12/31 — Marital status:\n(Single / Married / Divorced)"),
+        ("oila_azosi",          "👨‍👩‍👧 13/31 — Family members:\n(Name, date of birth, workplace, phone. None — None)"),
+        ("sudlanganmi",         "⚖️ 14/31 — Have you ever been convicted?\n(No / Yes — reason)"),
+        ("avtomobil",           "🚗 15/31 — Do you have a personal car?\n(No / Yes — model)"),
+        ("haydovchilik",        "🪪 16/31 — Do you have a driver's license?\n(No / Yes — category: A/B/C/D/E)"),
+        ("uzbek_tili",          "🗣 17/31 — Uzbek language level?\n(Excellent / Good / Poor)"),
+        ("rus_tili",            "🗣 18/31 — Russian language level?\n(Excellent / Good / Poor / None)"),
+        ("ingliz_tili",         "🗣 19/31 — English language level?\n(Excellent / Good / Poor / None)"),
+        ("boshqa_til",          "🗣 20/31 — Do you know any other languages?\n(No / Yes — which and level)"),
+        ("qobiliyat",           "⭐ 21/31 — Special skills or talents:\n(None — None)"),
+        ("bosh_vaqt",           "🎯 22/31 — How do you spend your free time?"),
+        ("kompyuter",           "💻 23/31 — Computer skills level:\n(Proficient / Basic / None)"),
+        ("qayerdan_bildingiz",  "📢 24/31 — How did you find out about our company?"),
+        ("kafil",               "🤝 25/31 — Do you have a guarantor?\n(Name, relation, workplace, phone. None — None)"),
+        ("tavsiya",             "📄 26/31 — Can someone provide a reference letter?\n(Yes — name, position, phone. None — None)"),
+        ("surushtirishga_rozi", "🔍 27/31 — Do you agree to background check from last job?\n(Yes / No)"),
+        ("oldingi_maosh",       "💵 28/31 — What was your salary at your last job?"),
+        ("kutilayotgan_maosh",  "💰 29/31 — What salary do you expect from us?"),
+        ("ishlash_muddati",     "📆 30/31 — How long are you planning to work with us?"),
+        ("smena",               "⏰ 31/31 — Which shift do you prefer?\n\n☀️ Daytime (07:30-16:30)\n🌙 Evening (16:00-24:00)\n🔄 Either shift"),
     ]
 }
-
-# Rahbar va HR ga boradigan hisobot yorliqlari (tartib muhim)
-REPORT_LABELS = [
-    ("ism",                "Ism"),
-    ("yosh",               "Yoshi"),
-    ("millat",             "Millati"),
-    ("tug_joy",            "Tug'ilgan joy"),
-    ("yashash_joy",        "Hozirgi yashash  manzili"),
-    ("ish_tajriba",        "Ish tajribasi"),
-    ("ish_vazifalari",     "Asosiy ish vazifalari nimalardan iborat bo'lgan"),
-    ("chet_safari",        "Chet safari"),
-    ("oilaviy_holat",      "Oilaviy holat"),
-    ("sudlanganmi",        "Sudlanganmi"),
-    ("avtomobil",          "Avtomobil"),
-    ("haydovchilik",       "Haydovchilik"),
-    ("uzbek_tili",         "O'zbek tili"),
-    ("rus_tili",           "Rus tili"),
-    ("ingliz_tili",        "Ingliz tili"),
-    ("qiziqish",           "Qiziqishlari"),
-    ("kompyuter",          "Kompyuter"),
-    ("tavsiya",            "Tavsiya"),
-    ("oldingi_maosh",      "Oldingi maosh"),
-    ("kutilayotgan_maosh", "Kutilayotgan maosh"),
-    ("muddati",            "Muddati"),
-    ("smena",              "Smena"),
-]
 
 ADMIN_MENU = ReplyKeyboardMarkup([
     ["👥 Xodimlar ro'yxati", "➕ Xodim qo'shish"],
@@ -388,192 +365,163 @@ async def kechikish_callback(update, context):
              (xodim_id, datetime.now().strftime("%d.%m.%Y"), 15))
     await query.edit_message_text(f"{xodim[0]} — jarima: 50 000 so'm")
 
-# ===================== YORDAMCHI FUNKSIYALAR =====================
-async def safe_delete(bot, chat_id, message_id):
-    """Xabarni o'chiradi; o'chirib bo'lmasa — jim o'tib ketadi."""
-    if not message_id:
-        return
-    try:
-        await bot.delete_message(chat_id=chat_id, message_id=message_id)
-    except Exception:
-        pass
-
-async def clear_chat(bot, chat_id, last_message_id, back=100):
-    """Joriy xabardan orqaga qarab hamma chatni o'chiradi (48 soat ichidagilar).
-    Telegram bot faqat 48 soatdan yangi xabarlarni o'chira oladi."""
-    for mid in range(last_message_id, max(0, last_message_id - back), -1):
-        try:
-            await bot.delete_message(chat_id=chat_id, message_id=mid)
-        except Exception:
-            pass
-
-def split_text(text, max_len=4000):
-    """Uzun matnni Telegram limitiga (4096) sig'adigan bo'laklarga bo'ladi."""
-    parts, chunk = [], ""
-    for line in text.split("\n"):
-        while len(line) > max_len:
-            if chunk:
-                parts.append(chunk); chunk = ""
-            parts.append(line[:max_len])
-            line = line[max_len:]
-        if len(chunk) + len(line) + 1 > max_len:
-            parts.append(chunk); chunk = ""
-        chunk += line + "\n"
-    if chunk.strip():
-        parts.append(chunk)
-    return parts or [text]
-
-async def send_long(bot, chat_id, text, reply_markup=None):
-    """Uzun matnni bo'lib yuboradi. Yuborilgan xabar id larini qaytaradi."""
-    ids = []
-    parts = split_text(text)
-    for i, part in enumerate(parts):
-        m = await bot.send_message(
-            chat_id=chat_id, text=part,
-            reply_markup=reply_markup if i == len(parts) - 1 else None)
-        ids.append(m.message_id)
-    return ids
-
-def build_full_qa(user_id, data, username):
-    """Rahbar, HR va ariza beruvchi uchun bir xil hisobot ko'rinishi."""
-    text = "YANGI ARIZA!\n\n"
-    for key, label in REPORT_LABELS:
-        text += f"{label}: {data.get(key, '')}\n"
-    text += f"\nTelegram: @{username}\n"
-    text += f"Telefon: {data.get('telefon', '')}"
-    return text
-
-async def send_to_rahbar_hr(context, user_id, data, username):
-    """To'liq savol-javobni (va rasmni) Rahbar va HR ga yuboradi."""
-    full_text = build_full_qa(user_id, data, username)
-    rasm_id = data.get("rasm_file_id")
-    for chat_id, kim in REPORT_RECIPIENTS:
-        try:
-            await send_long(context.bot, chat_id, full_text)
-            if rasm_id:
-                await context.bot.send_photo(
-                    chat_id=chat_id, photo=rasm_id,
-                    caption=f"📸 Ariza beruvchi rasmi: {data.get('ism', '')}")
-            logger.info(f"{kim} ({chat_id}) ga ariza yuborildi")
-        except Exception as e:
-            logger.error(f"{kim} ({chat_id}) ga yuborishda xato: {e}")
-
 # ===================== ANKETA =====================
 async def start_anketa(update, context):
     user_id = update.effective_user.id
-    chat_id = update.effective_chat.id
     lang = get_lang(user_id)
-    user_anketa[user_id] = {"step": 0, "data": {}, "last_msg_id": None, "summary_ids": []}
+    user_anketa[user_id] = {"step": 0, "data": {}}
     steps = ANKETA_STEPS[lang]
-
-    # "Ishchi qabul qilish" tugmasi bosilgan xabar o'chadi — chat toza qoladi
-    await safe_delete(context.bot, chat_id, update.message.message_id)
-
-    sent = await context.bot.send_message(
-        chat_id=chat_id,
-        text=get_text(user_id, "anketa_boshlash").format(len(steps)) + steps[0][1],
-        reply_markup=get_anketa_keyboard(user_id))
-    user_anketa[user_id]["last_msg_id"] = sent.message_id
+    await update.message.reply_text(
+        get_text(user_id, "anketa_boshlash").format(len(steps)) + steps[0][1],
+        reply_markup=ReplyKeyboardRemove())
 
 async def process_anketa(update, context):
     user_id = update.effective_user.id
-    chat_id = update.effective_chat.id
     lang = get_lang(user_id)
     steps = ANKETA_STEPS[lang]
     step_data = user_anketa[user_id]
     current_step = step_data["step"]
-    key, question = steps[current_step]
+    key, _ = steps[current_step]
 
-    # /bekor — istalgan qadamda
-    if update.message.text == "/bekor":
-        await safe_delete(context.bot, chat_id, update.message.message_id)
-        await safe_delete(context.bot, chat_id, step_data.get("last_msg_id"))
-        user_anketa.pop(user_id, None)
-        await context.bot.send_message(
-            chat_id=chat_id, text=get_text(user_id, "bekor"), reply_markup=get_menu(user_id))
-        return
-
-    # Javobni olish
+    # Rasm qabul qilish
     if key == "rasm":
-        # Rasm (surat) kutilyapti
-        if not update.message.photo:
-            # Rasm kelmadi — foydalanuvchi xabarini o'chirib, savolni qoldiramiz
-            await safe_delete(context.bot, chat_id, update.message.message_id)
-            return
-        step_data["data"]["rasm_file_id"] = update.message.photo[-1].file_id
-        step_data["data"]["rasm"] = "📸 Rasm yuborilgan"
+        if update.message.photo:
+            photo_id = update.message.photo[-1].file_id
+            step_data["data"]["rasm"] = photo_id
+            step_data["data"]["rasm_file_id"] = photo_id
+        elif update.message.text == "/bekor":
+            user_anketa.pop(user_id, None)
+            await update.message.reply_text(get_text(user_id, "bekor"), reply_markup=get_menu(user_id)); return
+        else:
+            await update.message.reply_text("Iltimos, rasm yuboring (3x4 razmer):", reply_markup=ReplyKeyboardRemove()); return
     else:
-        # Matnli javob kutilyapti
-        if not update.message.text:
-            await safe_delete(context.bot, chat_id, update.message.message_id)
-            return
-        step_data["data"][key] = update.message.text
-
-    # CHAT TOZALANADI: berilgan javob va oldingi savol o'chadi
-    await safe_delete(context.bot, chat_id, update.message.message_id)
-    await safe_delete(context.bot, chat_id, step_data.get("last_msg_id"))
-    step_data["last_msg_id"] = None
+        text = update.message.text
+        if text == "/bekor":
+            user_anketa.pop(user_id, None)
+            await update.message.reply_text(get_text(user_id, "bekor"), reply_markup=get_menu(user_id)); return
+        step_data["data"][key] = text
 
     next_step = current_step + 1
 
     if next_step < len(steps):
         step_data["step"] = next_step
         next_key, next_question = steps[next_step]
-        markup = get_smena_keyboard(user_id) if next_key == "smena" else get_anketa_keyboard(user_id)
-        sent = await context.bot.send_message(
-            chat_id=chat_id, text=next_question, reply_markup=markup)
-        step_data["last_msg_id"] = sent.message_id
+        if next_key == "smena":
+            await update.message.reply_text(next_question, reply_markup=get_smena_menu(user_id))
+        elif next_key == "rasm":
+            await update.message.reply_text(next_question, reply_markup=ReplyKeyboardRemove())
+        else:
+            await update.message.reply_text(next_question, reply_markup=ReplyKeyboardRemove())
     else:
         data = step_data["data"]
         db_query("INSERT INTO arizalar (ism, telefon, lavozim, smena, sana) VALUES (?,?,?,?,?)",
-                 (data.get('ism'), data.get('telefon'), "—",
+                 (data.get('ism_familiya_sharif'), data.get('telefon'), "—",
                   data.get('smena'), datetime.now().strftime("%d.%m.%Y")))
 
-        # Yakuniy ko'rinish — Rahbar/HR ga boradigani bilan bir xil
-        username = update.effective_user.username or "username_yoq"
-        summary = build_full_qa(user_id, data, username)
-        summary += f"\n\n{get_text(user_id, 'tasdiqlash')}"
+        summary = get_text(user_id, "anketa_tayyor")
+        fields = [
+            ("Ism / Name / Имя", "ism_familiya_sharif"),
+            ("Tug'ilgan sana", "tug_sana"),
+            ("Millat", "millat"),
+            ("Tug'ilgan joy", "tug_joy"),
+            ("Yashash joyi", "yashash_joy"),
+            ("Turar joy", "turar_joy"),
+            ("Telefon", "telefon"),
+            ("Ta'lim", "talim"),
+            ("O'quv yurti", "oquv_yurti"),
+            ("Ish tajribasi", "oldingi_ish"),
+            ("Chet safari", "chet_safari"),
+            ("Oilaviy holat", "oilaviy_holat"),
+            ("Oila a'zolari", "oila_azosi"),
+            ("Sudlanganmi", "sudlanganmi"),
+            ("Avtomobil", "avtomobil"),
+            ("Haydovchilik", "haydovchilik"),
+            ("O'zbek tili", "uzbek_tili"),
+            ("Rus tili", "rus_tili"),
+            ("Ingliz tili", "ingliz_tili"),
+            ("Boshqa til", "boshqa_til"),
+            ("Qobiliyat", "qobiliyat"),
+            ("Bo'sh vaqt", "bosh_vaqt"),
+            ("Kompyuter", "kompyuter"),
+            ("Qayerdan bildingiz", "qayerdan_bildingiz"),
+            ("Kafil", "kafil"),
+            ("Tavsiya", "tavsiya"),
+            ("Surishtirish", "surushtirishga_rozi"),
+            ("Oldingi maosh", "oldingi_maosh"),
+            ("Kutilayotgan maosh", "kutilayotgan_maosh"),
+            ("Ishlash muddati", "ishlash_muddati"),
+            ("Smena", "smena"),
+        ]
+        for label, key in fields:
+            val = data.get(key, "—")
+            summary += f"{label}: {val}\n"
+
+        summary += f"\n{get_text(user_id, 'tasdiqlash')}"
 
         confirm_keyboard = InlineKeyboardMarkup([[
             InlineKeyboardButton(get_text(user_id, "tasdiq_btn"), callback_data="anketa_confirm"),
             InlineKeyboardButton(get_text(user_id, "bekor_btn"), callback_data="anketa_cancel")
         ]])
-        # Yakun: hammasi bitta joyda ko'rinadi
-        step_data["summary_ids"] = await send_long(
-            context.bot, chat_id, summary, reply_markup=confirm_keyboard)
+        await update.message.reply_text(summary, reply_markup=confirm_keyboard)
 
 async def anketa_callback(update, context):
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
 
-    session = user_anketa.get(user_id, {})
-    data = session.get("data", {})
-
     if query.data == "anketa_confirm":
+        data = user_anketa.get(user_id, {}).get("data", {})
         username = query.from_user.username or "username_yoq"
+        msg = "YANGI ARIZA!\n\n"
+        fields = [
+            ("Ism", "ism_familiya_sharif"), ("Telefon", "telefon"),
+            ("Tug'ilgan sana", "tug_sana"), ("Millat", "millat"),
+            ("Tug'ilgan joy", "tug_joy"), ("Yashash joyi", "yashash_joy"),
+            ("Turar joy", "turar_joy"), ("Ta'lim", "talim"),
+            ("O'quv yurti", "oquv_yurti"), ("Ish tajribasi", "oldingi_ish"),
+            ("Chet safari", "chet_safari"), ("Oilaviy holat", "oilaviy_holat"),
+            ("Oila a'zolari", "oila_azosi"), ("Sudlanganmi", "sudlanganmi"),
+            ("Avtomobil", "avtomobil"), ("Haydovchilik", "haydovchilik"),
+            ("O'zbek tili", "uzbek_tili"), ("Rus tili", "rus_tili"),
+            ("Ingliz tili", "ingliz_tili"), ("Boshqa til", "boshqa_til"),
+            ("Qobiliyat", "qobiliyat"), ("Bo'sh vaqt", "bosh_vaqt"),
+            ("Kompyuter", "kompyuter"), ("Qayerdan", "qayerdan_bildingiz"),
+            ("Kafil", "kafil"), ("Tavsiya", "tavsiya"),
+            ("Surishtirish", "surushtirishga_rozi"), ("Oldingi maosh", "oldingi_maosh"),
+            ("Kutilayotgan maosh", "kutilayotgan_maosh"), ("Muddati", "ishlash_muddati"),
+            ("Smena", "smena"),
+        ]
+        for label, key in fields:
+            msg += f"{label}: {data.get(key, '—')}\n"
+        msg += f"\nTelegram: @{username}"
 
-        # Rahbar va HR ga to'liq savol matni + to'liq javob yuboriladi
-        await send_to_rahbar_hr(context, user_id, data, username)
+        try:
+            await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=msg)
+            logger.info(f"Admin ga xabar yuborildi")
+            # Rasmni ham yuborish
+            rasm_id = data.get("rasm_file_id")
+            if rasm_id:
+                await context.bot.send_photo(
+                    chat_id=ADMIN_CHAT_ID,
+                    photo=rasm_id,
+                    caption=f"Ariza beruvchi rasmi: {data.get('ism_familiya_sharif', '')}"
+                )
+        except Exception as e:
+            logger.error(f"Admin ga xato: {e}")
 
-        # Xulosa xabarlarini tozalash
-        for mid in session.get("summary_ids", []):
-            await safe_delete(context.bot, user_id, mid)
         user_anketa.pop(user_id, None)
-
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
         await context.bot.send_message(
             chat_id=user_id,
             text=get_text(user_id, "rahmat"),
             reply_markup=get_menu(user_id))
 
     elif query.data == "anketa_cancel":
-        for mid in session.get("summary_ids", []):
-            await safe_delete(context.bot, user_id, mid)
         user_anketa.pop(user_id, None)
-
-        await context.bot.send_message(
-            chat_id=user_id,
-            text=get_text(user_id, "bekor_xabar"))
+        await query.edit_message_text(get_text(user_id, "bekor_xabar"))
         await context.bot.send_message(
             chat_id=user_id,
             text=get_text(user_id, "bosh_menyu"),
@@ -661,78 +609,17 @@ def ask_gemini(user_id, user_text):
     raise Exception("Gemini 3 marta ham javob bermadi")
 
 # ===================== ASOSIY =====================
-# ===================== MAJBURIY OBUNA =====================
-REQUIRED_CHANNEL = "@ottimo_uz"
-CHANNEL_URL = "https://t.me/ottimo_uz"
-
-GATE_TEXT = (
-    "🔒 Botdan foydalanish uchun rasmiy kanalimizga obuna bo'ling 👇\n"
-    "🔒 Для использования бота подпишитесь на наш канал 👇\n"
-    "🔒 To use the bot, please subscribe to our channel 👇\n\n"
-    "📢 @ottimo_uz\n\n"
-    "Obuna bo'lgach «✅ Tekshirish» tugmasini bosing."
-)
-
-def gate_markup():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📢 Kanalga obuna bo'lish", url=CHANNEL_URL)],
-        [InlineKeyboardButton("✅ Tekshirish / Проверить / Check", callback_data="check_sub")],
-    ])
-
-async def is_subscribed(bot, user_id):
-    """Foydalanuvchi @ottimo_uz kanaliga obunami? (Bot kanalda ADMIN bo'lishi shart!)"""
-    try:
-        m = await bot.get_chat_member(REQUIRED_CHANNEL, user_id)
-        return m.status in ("member", "administrator", "creator")
-    except Exception as e:
-        logger.error(f"Obuna tekshirishda xato (bot kanalda admin?): {e}")
-        return False
-
-async def send_language_menu(context, chat_id, user_name):
-    lang_menu = ReplyKeyboardMarkup(
-        TEXTS["uz"]["til_tanlash_menu"], resize_keyboard=True, one_time_keyboard=True)
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text=f"Salom, {user_name}!\n\nIltimos, tilni tanlang:\nПожалуйста, выберите язык:\nPlease choose language:",
-        reply_markup=lang_menu)
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    chat_id = update.effective_chat.id
-    # /start har doim toza boshlanadi — yarim qolgan anketa/admin holatini tozalaymiz
-    user_anketa.pop(user_id, None)
-    admin_state.pop(user_id, None)
-    # Majburiy obuna — obuna bo'lmasa til tanlash chiqmaydi
-    if not await is_subscribed(context.bot, user_id):
-        await context.bot.send_message(chat_id, GATE_TEXT, reply_markup=gate_markup())
-        return
-    await send_language_menu(context, chat_id, update.effective_user.first_name or "Foydalanuvchi")
-
-async def check_sub_callback(update, context):
-    query = update.callback_query
-    user_id = query.from_user.id
-    if await is_subscribed(context.bot, user_id):
-        await query.answer("✅ Rahmat! / Спасибо! / Thank you!")
-        try:
-            await query.message.delete()
-        except Exception:
-            pass
-        await send_language_menu(context, query.message.chat.id,
-                                 query.from_user.first_name or "Foydalanuvchi")
-    else:
-        await query.answer(
-            "❌ Siz hali obuna bo'lmagansiz!\n❌ Вы ещё не подписаны!\n❌ You are not subscribed yet!",
-            show_alert=True)
+    user_name = update.effective_user.first_name or "Foydalanuvchi"
+    lang_menu = ReplyKeyboardMarkup(
+        TEXTS["uz"]["til_tanlash_menu"], resize_keyboard=True, one_time_keyboard=True)
+    await update.message.reply_text(
+        f"Salom, {user_name}!\n\nIltimos, tilni tanlang:\nПожалуйста, выберите язык:\nPlease choose language:",
+        reply_markup=lang_menu)
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    # Faqat shaxsiy chat
-    if update.effective_chat.type != "private":
-        return
-    # Forward qilingan / reklama rasm — e'tiborsiz
-    if is_spam(update, in_anketa=(user_id in user_anketa)):
-        logger.info(f"Spam rasm e'tiborsiz qoldirildi: user {user_id}")
-        return
     if user_id in user_anketa:
         await process_anketa(update, context)
     else:
@@ -740,60 +627,14 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Rasm qabul qilindi, lekin hozir anketa to'ldirilmayapti.",
             reply_markup=get_menu(user_id))
 
-# Anketani to'xtatib, menyuga qaytaradigan tugmalar (barcha tillarda)
-MENU_TRIGGERS = set()
-for _lng in ("uz", "ru", "en"):
-    for _row in TEXTS[_lng]["menu"]:
-        MENU_TRIGGERS.update(_row)
-    for _row in TEXTS[_lng]["til_tanlash_menu"]:
-        MENU_TRIGGERS.update(_row)
-MENU_TRIGGERS.update(["🔙 Bosh menyu"])
-
-# ===================== SPAM HIMOYASI =====================
-import re as _re
-_SPAM_RE = _re.compile(r'(https?://|t\.me/|telegram\.me/|@[A-Za-z0-9_]{4,}|\.com|\.ru|\.net|joinchat)', _re.IGNORECASE)
-
-def is_spam(update, in_anketa=False):
-    """Reklama/spam xabarni aniqlaydi: forward, link, kanal reklamasi.
-    Anketa jarayonida (foydalanuvchi javob berayotganda) tekshirmaydi."""
-    msg = update.message
-    if msg is None:
-        return False
-    # Forward qilingan xabar — deyarli har doim spam
-    if getattr(msg, "forward_origin", None) or getattr(msg, "forward_date", None):
-        return True
-    # Inline tugmali reklama (foydalanuvchi bunday yubora olmaydi — kanaldan)
-    if getattr(msg, "via_bot", None):
-        return True
-    if in_anketa:
-        return False  # anketa javobini bloklamaymiz
-    text = msg.text or msg.caption or ""
-    if _SPAM_RE.search(text):
-        return True
-    return False
-
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user_text = update.message.text
 
-    # Faqat shaxsiy chat — guruh xabarlarini e'tiborsiz qoldiramiz
-    if update.effective_chat.type != "private":
-        return
-
-    # Spam/reklama xabar — jim e'tiborsiz qoldiramiz (javob bermaymiz)
-    if is_spam(update, in_anketa=(user_id in user_anketa)):
-        logger.info(f"Spam e'tiborsiz qoldirildi: user {user_id}")
-        return
-
-    # Anketa/admin jarayonida bo'lsa ham — menyu tugmasi bosilsa, to'xtatib menyuga o'tamiz
-    if user_text in MENU_TRIGGERS:
-        user_anketa.pop(user_id, None)
-        admin_state.pop(user_id, None)
-    else:
-        if user_id in user_anketa:
-            await process_anketa(update, context); return
-        if user_id in admin_state and admin_state[user_id].get("action") == "add_xodim":
-            await process_add_xodim(update, context); return
+    if user_id in user_anketa:
+        await process_anketa(update, context); return
+    if user_id in admin_state and admin_state[user_id].get("action") == "add_xodim":
+        await process_add_xodim(update, context); return
 
     # Admin tugmalari
     admin_map = {
@@ -883,19 +724,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if action == "yordam":
         await update.message.reply_text(get_text(user_id, "yordam"), reply_markup=get_menu(user_id)); return
     if action == "tozala":
-        chat_id = update.effective_chat.id
-        # Hamma chatni avtomatik o'chiramiz (joriy xabardan orqaga qarab)
-        await clear_chat(context.bot, chat_id, update.message.message_id, back=200)
-        # Holatni tozalaymiz (yarim qolgan anketa ham)
         user_sessions[user_id] = []
-        user_anketa.pop(user_id, None)
-        admin_state.pop(user_id, None)
-        # Chat tozalandi — hamma commandlar (bosh menyu) qayta ko'rinadi
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text="🗑️ " + get_text(user_id, "tozalandi") + "\n\n" + get_text(user_id, "bosh_menyu"),
-            reply_markup=get_menu(user_id))
-        return
+        await update.message.reply_text(get_text(user_id, "tozalandi"), reply_markup=get_menu(user_id)); return
 
     # Har qanday matn — Gemini ga yuborish (savol mode ham, erkin savol ham)
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
@@ -915,7 +745,6 @@ def main():
     init_db()
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(check_sub_callback, pattern="^check_sub$"))
     app.add_handler(CallbackQueryHandler(anketa_callback, pattern="^anketa_"))
     app.add_handler(CallbackQueryHandler(kechikish_callback, pattern="^kechik_"))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
