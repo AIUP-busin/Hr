@@ -13,7 +13,7 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 # Admin roli va ID
 ADMIN_RAHBAR = 206004279      # Rahbar (mr_jalilov7)
-ADMIN_HR = 731698729           # HR (Zamin_Rashidov)
+ADMIN_HR = 8134379339           # HR (menedjer)
 ADMIN_APPROVAL_PREFIX = "ariza_approval_"
 
 # ===================== TIL SOZLAMALARI =====================
