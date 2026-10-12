@@ -682,6 +682,42 @@ async def ariza_approval_callback(update, context):
 
         ariza_pending.pop(ariza_id, None)
 
+async def miniapp_ariza_callback(update, context):
+    """Mini App arizasi: rahbar qabul/rad qiladi, keyin HR ga yuborish yoki yo'qligini tanlaydi.
+    callback_data: mapp_ok_<rasm_msg_id> | mapp_no_<rasm_msg_id> | mapp_hr_<rasm_msg_id> | mapp_skip"""
+    query = update.callback_query
+    if query.from_user.id != ADMIN_RAHBAR:
+        await query.answer("Bu tugma faqat rahbar uchun", show_alert=True)
+        return
+    await query.answer()
+    parts = query.data.split("_")
+    action = parts[1]
+    photo_msg_id = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0
+    body = query.message.text_html or ""
+
+    if action in ("ok", "no"):
+        status = "✅ <b>QABUL QILINDI</b>" if action == "ok" else "❌ <b>RAD ETILDI</b>"
+        hr_keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton("📤 HR ga yuborish", callback_data=f"mapp_hr_{photo_msg_id}"),
+            InlineKeyboardButton("🚫 Yo'q", callback_data="mapp_skip")
+        ]])
+        await query.edit_message_text(f"{status}\n\n{body}", parse_mode="HTML", reply_markup=hr_keyboard)
+
+    elif action == "hr":
+        try:
+            if photo_msg_id:
+                await context.bot.copy_message(chat_id=ADMIN_HR, from_chat_id=query.message.chat_id,
+                                               message_id=photo_msg_id)
+            await context.bot.copy_message(chat_id=ADMIN_HR, from_chat_id=query.message.chat_id,
+                                           message_id=query.message.message_id)
+            await query.edit_message_text(f"{body}\n\n📤 <b>HR ga yuborildi</b>", parse_mode="HTML")
+        except Exception as e:
+            logger.error(f"Mini App arizasini HR ga yuborish xatosi: {e}")
+            await query.answer("❌ HR ga yuborib bo'lmadi", show_alert=True)
+
+    elif action == "skip":
+        await query.edit_message_text(f"{body}\n\n🚫 <b>HR ga yuborilmadi</b>", parse_mode="HTML")
+
 # ===================== GEMINI =====================
 def ask_gemini(user_id, user_text):
     lang = get_lang(user_id)
@@ -917,6 +953,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(anketa_callback, pattern="^anketa_"))
     app.add_handler(CallbackQueryHandler(ariza_approval_callback, pattern="^ariza_"))
+    app.add_handler(CallbackQueryHandler(miniapp_ariza_callback, pattern="^mapp_"))
     app.add_handler(CallbackQueryHandler(kechikish_callback, pattern="^kechik_"))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
